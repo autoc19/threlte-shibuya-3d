@@ -15,12 +15,16 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\sh
     error,
     children,
     ref = $bindable(),
+    onClick,
+    isFocused = false,
     ...props
   }: Props<THREE.Group> & {
     ref?: THREE.Group
     children?: Snippet<[{ ref: THREE.Group }]>
     fallback?: Snippet
     error?: Snippet<[{ error: Error }]>
+    onClick?: () => void
+    isFocused?: boolean
   } = $props()
 
   type GLTFResult = {
@@ -38,6 +42,7 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\sh
   bind:ref
   dispose={false}
   {...props}
+  onclick={onClick}
 >
   {#await gltf}
     {@render fallback?.()}
@@ -47,16 +52,18 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\sh
       material={gltf.nodes.Cube.material}
       position={[-0.78, 0, -0.79]}
       scale={[1, 1.41, 1]}
+      onclick={onClick}
     />
     <T.Mesh
       geometry={gltf.nodes.Cylinder.geometry}
       material={gltf.nodes.Cylinder.material}
       position={[1.53, 1.65, -1.68]}
       scale={0.22}
+      onclick={onClick}
     />
   {:catch err}
     {@render error?.({ error: err })}
   {/await}
 
-  {@render children?.({ ref })}
+  {@render children?.({ ref: ref! })}
 </T.Group>

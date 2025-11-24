@@ -15,12 +15,16 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\bo
     error,
     children,
     ref = $bindable(),
+    onClick,
+    isFocused = false,
     ...props
   }: Props<THREE.Group> & {
     ref?: THREE.Group
     children?: Snippet<[{ ref: THREE.Group }]>
     fallback?: Snippet
     error?: Snippet<[{ error: Error }]>
+    onClick?: () => void
+    isFocused?: boolean
   } = $props()
 
   type GLTFResult = {
@@ -33,12 +37,16 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\bo
   }
 
   const gltf = useGltf<GLTFResult>('/models/box_ex.glb')
+  
+  // Generate random color
+  const randomColor = () => `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`
 </script>
 
 <T.Group
   bind:ref
   dispose={false}
   {...props}
+  onclick={onClick}
 >
   {#await gltf}
     {@render fallback?.()}
@@ -46,7 +54,14 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\bo
     <T.Mesh
       geometry={gltf.nodes.Cube.geometry}
       material={gltf.materials.Material}
-    />
+      onclick={onClick}
+    >
+      <T.MeshStandardMaterial 
+        color={randomColor()} 
+        emissive={isFocused ? '#ff0000' : '#000000'}
+        emissiveIntensity={isFocused ? 0.3 : 0}
+      />
+    </T.Mesh>
   {:catch err}
     {@render error?.({ error: err })}
   {/await}

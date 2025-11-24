@@ -15,12 +15,16 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\bo
     error,
     children,
     ref = $bindable(),
+    onClick,
+    isFocused = false,
     ...props
   }: Props<THREE.Group> & {
     ref?: THREE.Group
     children?: Snippet<[{ ref: THREE.Group }]>
     fallback?: Snippet
     error?: Snippet<[{ error: Error }]>
+    onClick?: () => void
+    isFocused?: boolean
   } = $props()
 
   type GLTFResult = {
@@ -33,24 +37,48 @@ Command: npx @threlte/gltf@3.0.1 D:\DEV\threlte_project\shibuya\static\models\bo
   }
 
   const gltf = useGltf<GLTFResult>('/models/box_ex_new.glb')
+  
+  // Generate random instances
+  const instances = Array.from({ length: 15 }, () => ({
+    position: [
+      (Math.random() - 0.5) * 40, // -20 to 20 on X axis
+      Math.random() * 2, // 0 to 2 on Y axis (ground level)
+      (Math.random() - 0.5) * 40  // -20 to 20 on Z axis
+    ] as [number, number, number],
+    scale: 0.5 + Math.random() * 1.5, // 0.5 to 2.0 scale
+    rotation: Math.random() * Math.PI * 2, // 0 to 360 degrees
+    color: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}` // Random color
+  }))
 </script>
 
 <T.Group
   bind:ref
   dispose={false}
   {...props}
+  onclick={onClick}
 >
   {#await gltf}
     {@render fallback?.()}
   {:then gltf}
-    <T.Mesh
-      geometry={gltf.nodes.Cube.geometry}
-      material={gltf.materials.Material}
-      position={[0, 1, 0]}
-    />
+    {#each instances as instance (instance)}
+      <T.Mesh
+        geometry={gltf.nodes.Cube.geometry}
+        material={gltf.materials.Material}
+        position={instance.position}
+        scale={instance.scale}
+        rotation={[0, instance.rotation, 0]}
+        onclick={onClick}
+      >
+        <T.MeshStandardMaterial 
+          color={instance.color} 
+          emissive={isFocused ? '#ff0000' : '#000000'}
+          emissiveIntensity={isFocused ? 0.3 : 0}
+        />
+      </T.Mesh>
+    {/each}
   {:catch err}
     {@render error?.({ error: err })}
   {/await}
 
-  {@render children?.({ ref })}
+  {@render children?.({ ref: ref! })}
 </T.Group>
